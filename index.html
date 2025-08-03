@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+  <title>Ipatinga 2025</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+      body { margin:0; padding:0; }
+      body, table, tr, td, th, div, h1, h2, input { font-family: "Calibri", "Trebuchet MS", "Ubuntu", Serif; font-size: 11pt; }
+      #map { position:absolute; top:0; bottom:0; width:100%; } /* full size */
+      .ctl {
+          padding: 2px 10px 2px 10px;
+          background: white;
+          background: rgba(255,255,255,0.9);
+          box-shadow: 0 0 15px rgba(0,0,0,0.2);
+          border-radius: 5px;
+          text-align: right;
+      }
+      .title {
+          font-size: 18pt;
+          font-weight: bold;
+      }
+      .src {
+		  font-size: 10pt;
+		  max-height: 400px;     /* Altura máxima */
+		  overflow-y: auto;      /* Scroll vertical quando ultrapassar o limite */
+		  width: 230px;          /* Opcional: largura fixa */
+		  text-align: justify;   /* Melhor alinhamento do texto */
+	  }
+      .opacity-control {
+          padding: 5px;
+          background: white;
+          background: rgba(255,255,255,0.9);
+          box-shadow: 0 0 5px rgba(0,0,0,0.3);
+          border-radius: 5px;
+      }
+  </style>
+
+</head>
+<body>
+
+<div id="map"></div>
+
+<script>
+/* **** Leaflet **** */
+
+// Base layers
+var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Base: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    minZoom: 12,
+    maxZoom: 16
+});
+
+// Overlay tiles (gerados pelo gdal2tiles)
+var lyr = L.tileLayer('./tiles/{z}/{x}/{y}.png', {
+    tms: 1, opacity: 1, 
+    attribution: "Mapa de Ipatinga: © 2025 Geraldo Pereira de Morais Júnior – Todos os direitos reservados", 
+    minZoom: 12, 
+    maxZoom: 16
+});
+
+// Bounds e maxBounds
+var bounds = [[-19.52874137525878, -42.4677821148087], [-19.403735212340877, -42.644518094425166]];
+var max_bounds = L.latLngBounds(bounds).pad(1); // 10% de margem
+
+// Mapa
+var map = L.map('map', {
+    center: [-19.466238293799826, -42.55615010461693],
+    zoom: 13,
+    minZoom: 12,
+    maxZoom: 16,
+    layers: [osm, lyr],
+	// Ajusta a visualização inicial
+    maxBounds: max_bounds
+});
+
+// Base maps e overlay maps
+var basemaps = {
+    "OpenStreetMap": osm
+};
+
+var overlaymaps = {
+    "Ipatinga - 2025": lyr
+};
+
+// Título
+var title = L.control();
+title.onAdd = function(map) {
+    this._div = L.DomUtil.create('div', 'ctl title');
+    this.update();
+    return this._div;
+};
+title.update = function(props) {
+    this._div.innerHTML = "<span style='font-family: \"Cinzel Decorative\", serif; font-size: 22pt;'>IPATINGA</span>";
+};
+title.addTo(map);
+
+// Metodologia e Autoria
+var src = '<p><b>Autor:</b> Geraldo Pereira de Morais Júnior</p><p><b>Metodologia:</b> Com Google Earth Engine, foi feito a classificação de uso e cobertura da terra utilizando o algoritmo Random Forest, a partir de imagens Sentinel-2 L2A de julho de 2025. Foram calculados diferentes índices espectrais que, combinados às bandas originais, resultaram em 66 variáveis utilizadas no modelo. Em seguida, com o QGIS, o raster classificado foi vetorizado. Para a representação cartográfica final, foi utilizado simbologias inspiradas em mapas antigos, com estética clássica e detalhamento visual.</p>';
+
+var note = L.control({position: 'bottomright'});
+note.onAdd = function(map) {
+    this._div = L.DomUtil.create('div', 'ctl src');
+    this.update();
+    return this._div;
+};
+note.update = function() {
+    this._div.innerHTML = src;
+};
+note.addTo(map);
+
+// Controle de camadas
+L.control.layers(basemaps, overlaymaps, {collapsed: false}).addTo(map);
+
+// Lista de locais com coordenadas e nomes
+var locais = [
+  { nome: "Ferroviária de Ipatinga", coord: [-19.485058,-42.550391] },
+  { nome: "Shopping do Vale do Aço", coord: [-19.496540,-42.564925] },
+  { nome: "Hospital Márcio Cunha", coord: [-19.4967454, -42.5384110] },
+  { nome: "Rodoviária de Ipatinga", coord: [-19.478421,-42.522011] },
+  { nome: "Usiminas", coord: [-19.483533,-42.533111] },
+  { nome: "Usiminas", coord: [-19.492878,-42.556819] },
+  { nome: "Usiminas", coord: [-19.488759,-42.542667] },
+  { nome: "Aeroporto", coord: [-19.472833,-42.484380] },
+  { nome: "Ipatingão", coord: [-19.469667,-42.541808] },
+  { nome: "Parque Ipanema", coord: [-19.465433,-42.542171] },
+  { nome: "Subestação Ipatinga 1", coord: [-19.438559,-42.556590] }
+];
+
+// Evento de clique no mapa
+map.on('click', function(e) {
+  var popupAberto = false;
+
+  locais.forEach(function(l) {
+    // Calcula a distância do clique até cada ponto (em metros)
+    var distancia = e.latlng.distanceTo(L.latLng(l.coord));
+
+    if (distancia < 600 && !popupAberto) { // raio de 80m
+      L.popup()
+        .setLatLng(l.coord)
+        .setContent("<b>" + l.nome + "</b>")
+        .openOn(map);
+
+      popupAberto = true;
+    }
+  });
+});
+
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('keydown', function(e) {
+  if (
+	(e.ctrlKey && (e.key === 's' || e.key === 'u' || e.key === 'S' || e.key === 'U')) ||
+	(e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
+	e.key === 'F12'
+  ) {
+	e.preventDefault();
+	alert("Ação bloqueada.");
+  }
+});
+
+</script>
+</body>
+</html>
