@@ -10,35 +10,61 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-      body { margin:0; padding:0; }
-      body, table, tr, td, th, div, h1, h2, input { font-family: "Calibri", "Trebuchet MS", "Ubuntu", Serif; font-size: 11pt; }
-      #map { position:absolute; top:0; bottom:0; width:100%; } /* full size */
-      .ctl {
-          padding: 2px 10px 2px 10px;
-          background: white;
-          background: rgba(255,255,255,0.9);
-          box-shadow: 0 0 15px rgba(0,0,0,0.2);
-          border-radius: 5px;
-          text-align: right;
-      }
-      .title {
-          font-size: 18pt;
-          font-weight: bold;
-      }
-      .src {
-		  font-size: 10pt;
-		  max-height: 400px;     /* Altura máxima */
-		  overflow-y: auto;      /* Scroll vertical quando ultrapassar o limite */
-		  width: 230px;          /* Opcional: largura fixa */
-		  text-align: justify;   /* Melhor alinhamento do texto */
-	  }
-      .opacity-control {
-          padding: 5px;
-          background: white;
-          background: rgba(255,255,255,0.9);
-          box-shadow: 0 0 5px rgba(0,0,0,0.3);
-          border-radius: 5px;
-      }
+		body { margin:0; padding:0; }
+		body, table, tr, td, th, div, h1, h2, input { font-family: "Calibri", "Trebuchet MS", "Ubuntu", Serif; font-size: 11pt; }
+		#map { position:absolute; top:0; bottom:0; width:100%; } /* full size */
+		.ctl {
+			padding: 2px 10px 2px 10px;
+			background: white;
+			background: rgba(255,255,255,0.9);
+			box-shadow: 0 0 15px rgba(0,0,0,0.2);
+			border-radius: 5px;
+			text-align: right;
+			}
+		.title {
+			font-size: 18pt;
+			font-weight: bold;
+			}
+		.src {
+			font-size: 10pt;
+			max-height: 400px;     /* Altura máxima */
+			overflow-y: auto;      /* Scroll vertical quando ultrapassar o limite */
+			width: 230px;          /* Opcional: largura fixa */
+			text-align: justify;   /* Melhor alinhamento do texto */
+			}
+		.opacity-control {
+			padding: 5px;
+			background: white;
+			background: rgba(255,255,255,0.9);
+			box-shadow: 0 0 5px rgba(0,0,0,0.3);
+			border-radius: 5px;
+			}
+		.toggle-metodologia {
+			box-shadow:inset 0px 0px 0px 0px #a6827e;
+			background:linear-gradient(to bottom, #7d5d3b 5%, #634b30 100%);
+			background-color:#7d5d3b;
+			border-radius:20px;
+			border:1px solid #54381e;
+			display: block;
+			cursor:pointer;
+			color:#ffffff;
+			font-family:Arial;
+			font-size:13px;
+			padding:7px 15px;
+			text-decoration:none;
+			overflow:hidden; 
+			margin: 6px auto 0 auto;
+			width: fit-content;
+			text-align: center;
+		}
+		.toggle-metodologia:hover {
+			background:linear-gradient(to bottom, #634b30 5%, #7d5d3b 100%);
+			background-color:#634b30;
+		}
+		.toggle-metodologia:active {
+			position:relative;
+			top:1px;
+		}
   </style>
 
 </head>
@@ -53,7 +79,7 @@
 var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'Base: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     minZoom: 12,
-    maxZoom: 15
+    maxZoom: 16
 });
 
 // Overlay tiles (gerados pelo gdal2tiles)
@@ -61,7 +87,7 @@ var lyr = L.tileLayer('./tiles/{z}/{x}/{y}.png', {
     tms: 1, opacity: 1, 
     attribution: "Mapa de Ipatinga: © 2025 Geraldo Pereira de Morais Júnior – Todos os direitos reservados", 
     minZoom: 12, 
-    maxZoom: 15
+    maxZoom: 16
 });
 
 // Bounds e maxBounds
@@ -73,7 +99,7 @@ var map = L.map('map', {
     center: [-19.466238293799826, -42.55615010461693],
     zoom: 13,
     minZoom: 12,
-    maxZoom: 15,
+    maxZoom: 16,
     layers: [osm, lyr],
 	// Ajusta a visualização inicial
     maxBounds: max_bounds
@@ -100,17 +126,47 @@ title.update = function(props) {
 };
 title.addTo(map);
 
-// Metodologia e Autoria
-var src = '<p><b>Autor:</b> Geraldo Pereira de Morais Júnior</p><p><b>Metodologia:</b> Com Google Earth Engine, foi feito a classificação de uso e cobertura da terra utilizando o algoritmo Random Forest, a partir de imagens Sentinel-2 L2A de julho de 2025. Foram calculados diferentes índices espectrais que, combinados às bandas originais, resultaram em 66 variáveis utilizadas no modelo. Em seguida, com o QGIS, o raster classificado foi vetorizado. Para a representação cartográfica final, foi utilizado simbologias inspiradas em mapas antigos, com estética clássica e detalhamento visual.</p>';
+// Texto completo
+var metodologiaTextoCompleto = `<p><b>Método:</b> Com Google Earth Engine, foi feita a classificação de uso e cobertura da terra utilizando o algoritmo Random Forest, a partir de imagens Sentinel-2 L2A de julho de 2025. Foram calculados diferentes índices espectrais que, combinados às bandas originais, resultaram em 66 variáveis utilizadas no modelo. Em seguida, com o QGIS, o raster classificado foi vetorizado. Para a representação cartográfica final, foi utilizado simbologias inspiradas em mapas antigos, com estética clássica e detalhamento visual.</p>`;
 
-var note = L.control({position: 'bottomright'});
-note.onAdd = function(map) {
-    this._div = L.DomUtil.create('div', 'ctl src');
-    this.update();
-    return this._div;
-};
-note.update = function() {
-    this._div.innerHTML = src;
+// Excerto inicial
+var metodologiaExcerto = `<p><b>Autor:</b> Geraldo Pereira de Morais Júnior</p>`;
+
+// Controle colapsável
+var note = L.control({ position: 'bottomright' });
+note.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'ctl src');
+    div.innerHTML = `
+		<div id="metodologiaTexto" style="max-height:80px; overflow:hidden; text-align:justify;">
+			${metodologiaExcerto}
+		</div>
+		<button id="toggleMetodologia" class="toggle-metodologia">Autor</button>
+	`;
+
+    // Adiciona o evento aqui, garantindo que o botão já existe
+    setTimeout(function () {
+        var btn = div.querySelector('#toggleMetodologia');
+        var texto = div.querySelector('#metodologiaTexto');
+        var expandido = false;
+
+        btn.addEventListener('click', function () {
+            if (!expandido) {
+                texto.innerHTML = metodologiaTextoCompleto;
+                texto.style.maxHeight = "600px";
+                texto.style.overflowY = "auto";
+                btn.innerText = "Autor";
+                expandido = true;
+            } else {
+                texto.innerHTML = metodologiaExcerto;
+                texto.style.maxHeight = "80px";
+                texto.style.overflow = "hidden";
+                btn.innerText = "Método";
+                expandido = false;
+            }
+        });
+    }, 50);
+
+    return div;
 };
 note.addTo(map);
 
@@ -140,7 +196,7 @@ map.on('click', function(e) {
     // Calcula a distância do clique até cada ponto (em metros)
     var distancia = e.latlng.distanceTo(L.latLng(l.coord));
 
-    if (distancia < 400 && !popupAberto) { // raio de 80m
+    if (distancia < 600 && !popupAberto) { // raio de 80m
       L.popup()
         .setLatLng(l.coord)
         .setContent("<b>" + l.nome + "</b>")
