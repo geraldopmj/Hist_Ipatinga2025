@@ -196,7 +196,7 @@ map.on('click', function(e) {
     // Calcula a distância do clique até cada ponto (em metros)
     var distancia = e.latlng.distanceTo(L.latLng(l.coord));
 
-    if (distancia < 600 && !popupAberto) { // raio de 80m
+    if (distancia < 400 && !popupAberto) { // raio de 80m
       L.popup()
         .setLatLng(l.coord)
         .setContent("<b>" + l.nome + "</b>")
