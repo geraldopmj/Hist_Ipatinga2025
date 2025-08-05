@@ -1,4 +1,4 @@
-# Leaflet with a Map of Ipatinga
+# Leaflet with a Map of Ipatinga (Minas Gerais - Brazil)
 Map of Ipatinga created with GEE and QGIS.
 [Visualize](https://geraldopmj.github.io/Hist_Ipatinga2025/)
 
